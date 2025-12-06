@@ -1,0 +1,119 @@
+Thu 04 Dec 2025 22:36:09 INFO ██Server: 	minhle
+Thu 04 Dec 2025 22:36:09 INFO ██Dir: 	/home/minhle/CaMRec/src
+
+Thu 04 Dec 2025 22:36:09 INFO 
+gpu_id=0
+use_gpu=True
+seed=[999]
+data_path=../data/
+inter_splitting_label=x_label
+filter_out_cod_start_users=True
+is_multimodal_model=True
+checkpoint_dir=saved
+save_recommended_topk=True
+recommend_topk=recommend_topk/
+embedding_size=64
+weight_decay=0.0
+req_training=True
+epochs=1000
+stopping_step=20
+train_batch_size=2048
+learner=adam
+learning_rate=0.001
+learning_rate_scheduler=[0.96, 50]
+eval_step=1
+training_neg_sample_num=1
+use_neg_sampling=True
+use_full_sampling=False
+NEG_PREFIX=neg__
+USER_ID_FIELD=userID
+ITEM_ID_FIELD=itemID
+TIME_FIELD=timestamp
+field_separator=	
+metrics=['Recall', 'NDCG', 'Precision', 'MAP']
+topk=[5, 10, 20, 50]
+valid_metric=Recall@20
+eval_batch_size=4096
+use_raw_features=False
+max_txt_len=32
+max_img_size=256
+vocab_size=30522
+type_vocab_size=2
+hidden_size=4
+pad_token_id=0
+max_position_embeddings=512
+layer_norm_eps=1e-12
+hidden_dropout_prob=0.1
+end2end=False
+hyper_parameters=['seed', 'dropout', 'reg_weight', 'mode']
+inter_file_name=baby.inter
+vision_feature_file=image_feat.npy
+text_feature_file=text_feat.npy
+user_graph_dict_file=user_graph_dict.npy
+feat_embed_dim=64
+weight_size=[64, 64]
+lambda_coeff=0.9
+reg_weight=[0]
+n_mm_layers=1
+n_ui_layers=2
+knn_k=10
+mm_image_weight=0.1
+dropout=[0.2]
+mode=['local']
+model=PGL
+dataset=baby
+valid_metric_bigger=True
+device=cuda
+
+
+Thu 04 Dec 2025 22:36:09 INFO baby
+The number of users: 19445
+Average actions of users: 8.269066598097197
+The number of items: 7050
+Average actions of items: 22.807375886524824
+The number of inters: 160792
+The sparsity of the dataset: 99.8827082752043%
+Thu 04 Dec 2025 22:36:09 INFO 
+====Training====
+baby
+The number of users: 19445
+Average actions of users: 6.096734379017742
+The number of items: 7047
+Average actions of items: 16.82290336313325
+The number of inters: 118551
+The sparsity of the dataset: 99.9134846831415%
+Thu 04 Dec 2025 22:36:09 INFO 
+====Validation====
+baby
+The number of users: 19445
+Average actions of users: 1.0572897917202366
+The number of items: 5483
+Average actions of items: 3.749589640707642
+The number of inters: 20559
+The sparsity of the dataset: 99.98071694707788%
+Thu 04 Dec 2025 22:36:09 INFO 
+====Testing====
+baby
+The number of users: 19445
+Average actions of users: 1.1150424273592183
+The number of items: 5549
+Average actions of items: 3.907370697422959
+The number of inters: 21682
+The sparsity of the dataset: 99.97990552482683%
+Thu 04 Dec 2025 22:36:20 INFO =========1/1: Parameters:['seed', 'dropout', 'reg_weight', 'mode']=(999, 0.2, 0, 'local')=======
+Thu 04 Dec 2025 22:36:20 INFO PGL(
+  (user_text): Embedding(19445, 64)
+  (user_image): Embedding(19445, 64)
+  (image_embedding): Embedding(7050, 4096)
+  (image_trs): Linear(in_features=4096, out_features=64, bias=True)
+  (text_embedding): Embedding(7050, 384)
+  (text_trs): Linear(in_features=384, out_features=64, bias=True)
+  (dropoutf): Dropout(p=0.2, inplace=False)
+)
+Trainable parameters: 34359808
+Thu 04 Dec 2025 22:36:27 INFO epoch 0 training [time: 1.53s, train loss: 36.9737]
+Thu 04 Dec 2025 22:36:29 INFO epoch 0 evaluating [time: 1.32s, valid_score: 0.050800]
+Thu 04 Dec 2025 22:36:29 INFO valid result: 
+recall@5: 0.0212    recall@10: 0.0326    recall@20: 0.0508    recall@50: 0.0888    ndcg@5: 0.0141    ndcg@10: 0.0178    ndcg@20: 0.0224    ndcg@50: 0.0300    precision@5: 0.0045    precision@10: 0.0034    precision@20: 0.0027    precision@50: 0.0019    map@5: 0.0115    map@10: 0.0130    map@20: 0.0142    map@50: 0.0154    
+Thu 04 Dec 2025 22:36:29 INFO test result: 
+recall@5: 0.0195    recall@10: 0.0331    recall@20: 0.0521    recall@50: 0.0901    ndcg@5: 0.0133    ndcg@10: 0.0177    ndcg@20: 0.0227    ndcg@50: 0.0303    precision@5: 0.0044    precision@10: 0.0037    precision@20: 0.0029    precision@50: 0.0020    map@5: 0.0108    map@10: 0.0126    map@20: 0.0139    map@50: 0.0151    
