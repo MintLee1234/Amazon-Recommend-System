@@ -112,7 +112,7 @@ class Trainer(AbstractTrainer):
         
         cur = datetime.datetime.now()
         cur = cur.strftime('%b-%d-%Y-%H-%M-%S')
-        self.save_path = os.path.join('/home/minhle/CaMRec/saved_model', cur)
+        self.save_path = os.path.join(r'D:\Show_me_everything\Amazon-Recommend-System\saved_model', cur)
         os.makedirs(self.save_path, exist_ok=True)
 
     def _build_optimizer(self):
