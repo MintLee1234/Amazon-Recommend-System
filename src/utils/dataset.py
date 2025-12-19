@@ -1,13 +1,3 @@
-# coding: utf-8
-# @email: enoche.chow@gmail.com
-#
-# updated: Mar. 25, 2022
-# Filled non-existing raw features with non-zero after encoded from encoders
-
-"""
-Data pre-processing
-##########################
-"""
 from logging import getLogger
 import os
 import pandas as pd
@@ -68,15 +58,6 @@ class RecDataset(object):
         return full_ds
 
     def copy(self, new_df):
-        """Given a new interaction feature, return a new :class:`Dataset` object,
-                whose interaction feature is updated with ``new_df``, and all the other attributes the same.
-
-                Args:
-                    new_df (pandas.DataFrame): The new interaction feature need to be updated.
-
-                Returns:
-                    :class:`~Dataset`: the new :class:`~Dataset` object, whose interaction feature has been updated.
-                """
         nxt = RecDataset(self.config, new_df)
 
         nxt.item_num = self.item_num

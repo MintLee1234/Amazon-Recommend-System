@@ -1,9 +1,3 @@
-# coding: utf-8
-# @email: enoche.chow@gmail.com
-"""
-Wrap dataset into dataloader
-################################################
-"""
 import math
 import torch
 import random
@@ -13,38 +7,12 @@ from scipy.sparse import coo_matrix
 
 
 class AbstractDataLoader(object):
-    """:class:`AbstractDataLoader` is an abstract object which would return a batch of data which is loaded by
-    :class:`~recbole.data.interaction.Interaction` when it is iterated.
-    And it is also the ancestor of all other dataloader.
-
-    Args:
-        config (Config): The config of dataloader.
-        dataset (Dataset): The dataset of dataloader.
-        batch_size (int, optional): The batch_size of dataloader. Defaults to ``1``.
-        dl_format (InputType, optional): The input type of dataloader. Defaults to
-            :obj:`~recbole.utils.enum_type.InputType.POINTWISE`.
-        shuffle (bool, optional): Whether the dataloader will be shuffle after a round. Defaults to ``False``.
-
-    Attributes:
-        dataset (Dataset): The dataset of this dataloader.
-        shuffle (bool): If ``True``, dataloader will shuffle before every epoch.
-        real_time (bool): If ``True``, dataloader will do data pre-processing,
-            such as neg-sampling and data-augmentation.
-        pr (int): Pointer of dataloader.
-        step (int): The increment of :attr:`pr` for each batch.
-        batch_size (int): The max interaction number for all batch.
-    """
     def __init__(self, config, dataset, additional_dataset=None,
                  batch_size=1, neg_sampling=False, shuffle=False):
         self.config = config
         self.logger = getLogger()
         self.dataset = dataset
         self.dataset_bk = self.dataset.copy(self.dataset.df)
-        # if config['model_type'] == ModelType.GENERAL:
-        #     self.dataset.df.drop(self.dataset.ts_id, inplace=True, axis=1)
-        # elif config['model_type'] == ModelType.SEQUENTIAL:
-        #     # sort instances
-        #     pass
         self.additional_dataset = additional_dataset
         self.batch_size = batch_size
         self.step = batch_size
@@ -153,45 +121,12 @@ class TrainDataLoader(AbstractDataLoader):
         #self.dataset.sort_by_chronological()
 
     def inter_matrix(self, form='coo', value_field=None):
-        """Get sparse matrix that describe interactions between user_id and item_id.
-
-        Sparse matrix has shape (user_num, item_num).
-
-        For a row of <src, tgt>, ``matrix[src, tgt] = 1`` if ``value_field`` is ``None``,
-        else ``matrix[src, tgt] = self.inter_feat[src, tgt]``.
-
-        Args:
-            form (str, optional): Sparse matrix format. Defaults to ``coo``.
-            value_field (str, optional): Data of sparse matrix, which should exist in ``df_feat``.
-                Defaults to ``None``.
-
-        Returns:
-            scipy.sparse: Sparse matrix in form ``coo`` or ``csr``.
-        """
         if not self.dataset.uid_field or not self.dataset.iid_field:
             raise ValueError('dataset doesn\'t exist uid/iid, thus can not converted to sparse matrix')
         return self._create_sparse_matrix(self.dataset.df, self.dataset.uid_field,
                                           self.dataset.iid_field, form, value_field)
 
     def _create_sparse_matrix(self, df_feat, source_field, target_field, form='coo', value_field=None):
-        """Get sparse matrix that describe relations between two fields.
-
-        Source and target should be token-like fields.
-
-        Sparse matrix has shape (``self.num(source_field)``, ``self.num(target_field)``).
-
-        For a row of <src, tgt>, ``matrix[src, tgt] = 1`` if ``value_field`` is ``None``,
-        else ``matrix[src, tgt] = df_feat[value_field][src, tgt]``.
-
-        Args:
-            df_feat (pandas.DataFrame): Feature where src and tgt exist.
-            form (str, optional): Sparse matrix format. Defaults to ``coo``.
-            value_field (str, optional): Data of sparse matrix, which should exist in ``df_feat``.
-                Defaults to ``None``.
-
-        Returns:
-            scipy.sparse: Sparse matrix in form ``coo`` or ``csr``.
-        """
         src = df_feat[source_field].values
         tgt = df_feat[target_field].values
         if value_field is None:
@@ -368,14 +303,6 @@ class EvalDataLoader(AbstractDataLoader):
         return [batch_users, batch_mask_matrix]
 
     def _get_pos_items_per_u(self, eval_users):
-        """
-        history items in training dataset.
-        masking out positive items in evaluation
-        :return:
-        user_id - item_ids matrix
-        [[0, 0, ... , 1, ...],
-         [0, 1, ... , 0, ...]]
-        """
         uid_field = self.additional_dataset.uid_field
         iid_field = self.additional_dataset.iid_field
         # load avail items for all uid
@@ -391,10 +318,6 @@ class EvalDataLoader(AbstractDataLoader):
         return torch.tensor([u_ids, i_ids]).type(torch.LongTensor)
 
     def _get_eval_items_per_u(self, eval_users):
-        """
-        get evaluated items for each u
-        :return:
-        """
         uid_field = self.dataset.uid_field
         iid_field = self.dataset.iid_field
         # load avail items for all uid

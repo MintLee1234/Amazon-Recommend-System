@@ -1,10 +1,3 @@
-# coding: utf-8
-# @email: enoche.chow@gmail.com
-
-r"""
-################################
-"""
-
 import datetime
 import itertools
 import torch
@@ -46,20 +39,6 @@ class AbstractTrainer(object):
 
 
 class Trainer(AbstractTrainer):
-    r"""The basic Trainer for basic training and evaluation strategies in recommender systems. This class defines common
-    functions for training and evaluation processes of most recommender system models, including fit(), evaluate(),
-   and some other features helpful for model training and evaluation.
-
-    Generally speaking, this class can serve most recommender system models, If the training process of the model is to
-    simply optimize a single loss without involving any complex training strategies, such as adversarial learning,
-    pre-training and so on.
-
-    Initializing the Trainer needs two parameters: `config` and `model`. `config` records the parameters information
-    for controlling training and evaluation, such as `learning_rate`, `epochs`, `eval_step` and so on.
-    More information can be found in [placeholder]. `model` is the instantiated object of a Model Class.
-
-    """
-
     def __init__(self, config, model, mg=False):
         super(Trainer, self).__init__(config, model)
 
@@ -116,11 +95,6 @@ class Trainer(AbstractTrainer):
         os.makedirs(self.save_path, exist_ok=True)
 
     def _build_optimizer(self):
-        r"""Init the Optimizer
-
-        Returns:
-            torch.optim: the optimizer
-        """
         if self.learner.lower() == 'adam':
             optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay)
         elif self.learner.lower() == 'sgd':
@@ -135,19 +109,6 @@ class Trainer(AbstractTrainer):
         return optimizer
 
     def _train_epoch(self, train_data, epoch_idx, loss_func=None):
-        r"""Train the model in an epoch
-
-        Args:
-            train_data (DataLoader): The train data.
-            epoch_idx (int): The current epoch id.
-            loss_func (function): The loss function of :attr:`model`. If it is ``None``, the loss function will be
-                :attr:`self.model.calculate_loss`. Defaults to ``None``.
-
-        Returns:
-            float/tuple: The sum of loss returned by all batches in this epoch. If the loss in each batch contains
-            multiple parts and the model return these multiple parts loss instead of the sum of loss, It will return a
-            tuple which includes the sum of loss in each part.
-        """
         if not self.req_training:
             return 0.0, []
         self.model.train()
@@ -201,15 +162,6 @@ class Trainer(AbstractTrainer):
         return total_loss, loss_batches
 
     def _valid_epoch(self, valid_data):
-        r"""Valid the model with valid data
-
-        Args:
-            valid_data (DataLoader): the valid data
-
-        Returns:
-            float: valid score
-            dict: valid result
-        """
         valid_result = self.evaluate(valid_data)
         valid_score = valid_result[self.valid_metric] if self.valid_metric else valid_result['NDCG@20']
         return valid_score, valid_result
@@ -227,20 +179,7 @@ class Trainer(AbstractTrainer):
             train_loss_output += 'train loss: %.4f' % losses
         return train_loss_output + ']'
 
-    def fit(self, train_data, valid_data=None, test_data=None, saved=False, verbose=True):
-        r"""Train the model based on the train data and the valid data.
-
-        Args:
-            train_data (DataLoader): the train data
-            valid_data (DataLoader, optional): the valid data, default: None.
-                                               If it's None, the early_stopping is invalid.
-            test_data (DataLoader, optional): None
-            verbose (bool, optional): whether to write training and evaluation information to logger, default: True
-            saved (bool, optional): whether to save the model parameters, default: True
-
-        Returns:
-             (float, dict): best valid score and best valid result. If valid_data is None, it returns (-1, None)
-        """
+    def fit(self, train_data, valid_data=None, test_data=None, verbose=True):
         for epoch_idx in range(self.start_epoch, self.epochs):
             # train
             training_start_time = time()
@@ -314,10 +253,6 @@ class Trainer(AbstractTrainer):
 
     @torch.no_grad()
     def evaluate(self, eval_data, is_test=False, idx=0):
-        r"""Evaluate the model based on the eval data.
-        Returns:
-            dict: eval result, key is the eval metric and value in the corresponding metric value
-        """
         self.model.eval()
 
         # batch full users
@@ -334,13 +269,6 @@ class Trainer(AbstractTrainer):
         return self.evaluator.evaluate(batch_matrix_list, eval_data, is_test=is_test, idx=idx)
 
     def plot_train_loss(self, show=True, figsize = (15,12), save = True, rotation = 0, markersize = 1):
-        r"""Plot the train loss in each epoch
-
-        Args:
-            show (bool, optional): whether to show this figure, default: True
-            save_path (str, optional): the data path to save the figure, default: None.
-                                       If it's None, it will not be saved.
-        """
         epochs = list(self.train_loss_dict.keys())
         epochs.sort()
         values = [float(self.train_loss_dict[epoch]) for epoch in epochs]

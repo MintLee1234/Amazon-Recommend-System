@@ -1,24 +1,9 @@
-# coding: utf-8
-# @email: enoche.chow@gmail.com
-
-"""
-###############################
-"""
-
 import logging
 import os
 from utils.utils import get_local_time
 
 
 def init_logger(config):
-    """
-    A logger that can show a message on standard output and write it into the
-    file named `filename` simultaneously.
-    All the message that you want to log MUST be str.
-
-    Args:
-        config (Config): An instance object of Config, used to record parameter information.
-    """
     LOGROOT = './log/'
     dir_name = os.path.dirname(LOGROOT)
     if not os.path.exists(dir_name):

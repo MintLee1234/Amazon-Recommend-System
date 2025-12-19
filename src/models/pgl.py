@@ -1,13 +1,3 @@
-# coding: utf-8
-# @email: y463213402@gmail.com
-r"""
-PGL
-################################################
-Reference:
-    https://github.com/demonph10/PGL
-    AAAI'2025: [Mind Individual Information! Principal Graph Learning for Multimedia Recommendation]
-"""
-
 import os
 import numpy as np
 import scipy.sparse as sp

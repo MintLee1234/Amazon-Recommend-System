@@ -20,19 +20,10 @@ _pil_interpolation_to_str = {
 
 
 def flat_list_of_lists(l):
-    """flatten a list of lists [[1,2], [3,4]] to [1,2,3,4]"""
     return [item for sublist in l for item in sublist]
 
 
-def mask_batch_text_tokens(
-        inputs, tokenizer, mlm_probability=0.15, is_train=True):
-    """ modified from transformers.data.data_collator
-    Args:
-        inputs: (B, L), 2D torch.Tensor, does not work for 1D. It has already been padded.
-        tokenizer:
-        mlm_probability: float
-        is_train: if True use random masking, else mask tokens at fixed position to remove randomness in evaluation.
-    """
+def mask_batch_text_tokens(inputs, tokenizer, mlm_probability=0.15):
     if tokenizer.mask_token is None:
         raise ValueError(
             "This tokenizer does not have a mask token which is necessary for masked language modeling. "
@@ -75,16 +66,6 @@ def mask_batch_text_tokens(
 
 
 def image_to_tensor(image: np.ndarray, keepdim: bool = True) -> torch.Tensor:
-    """Converts a numpy image to a PyTorch 4d tensor image.
-    Args:
-        image (numpy.ndarray): image of the form :math:`(H, W, C)`, :math:`(H, W)` or
-            :math:`(B, H, W, C)`.
-        keepdim (bool): If ``False`` unsqueeze the input image to match the shape
-            :math:`(B, H, W, C)`. Default: ``True``
-    Returns:
-        torch.Tensor: tensor of the form :math:`(B, C, H, W)` if keepdim is ``False``,
-            :math:`(C, H, W)` otherwise.
-    """
     if not isinstance(image, (np.ndarray,)):
         raise TypeError("Input type must be a numpy.ndarray. Got {}".format(
             type(image)))
@@ -169,21 +150,6 @@ class ImagePad(object):
 
 
 def get_resize_size(image, max_size):
-    """
-    Args:
-        image: PIL Image or torch.tensor
-        max_size:
-
-    Returns:
-
-    Note the height/width order difference
-    >>> pil_img = Image.open("raw_img_tensor.jpg")
-    >>> pil_img.size
-    (640, 480)  # (width, height)
-    >>> np_img = np.array(pil_img)
-    >>> np_img.shape
-    (480, 640, 3)  # (height, width, 3)
-    """
     # note the order of height and width for different inputs
     if isinstance(image, torch.Tensor):
         # width, height = image.shape[-2:]
@@ -204,17 +170,6 @@ def get_resize_size(image, max_size):
 
 
 class ImageResize(object):
-    """Resize the input image (torch.tensor) to the given size.
-
-    Args:
-        max_size (int): Desired output size. If size is a sequence like
-            (h, w), output size will be matched to this. If size is an int,
-            smaller edge of the image will be matched to this number.
-            i.e, if height > width, then image will be rescaled to
-            (size * height / width, size)
-        interpolation (int, optional): Desired interpolation. Default is
-            ``PIL.Image.BILINEAR``
-    """
 
     def __init__(self, max_size, interpolation=Image.BILINEAR):
         assert isinstance(max_size, int)
@@ -244,9 +199,6 @@ class ImageResize(object):
 
 
 def get_imagenet_transform(min_size=600, max_size=1000):
-    """parameters from https://github.com/pytorch/examples/blob/master/imagenet/main.py
-    This simply crop the center square from the image
-    """
     if min_size != 600:
         import warnings
         warnings.warn(f'Warning: min_size is not used in image transform, '
@@ -281,17 +233,6 @@ class ImageNorm(object):
 
 
 def chunk_list(examples, chunk_size=2, pad_to_divisible=True):
-    """
-    Args:
-        examples: iterable, examples grouped by image/video
-        chunk_size: int, number of examples in each chunk.
-        pad_to_divisible: bool, pad the examples to be divisible by chunk_size.
-    >>> test_examples = [3, 4, 5, 6, 7]
-    >>> chunk_list(test_examples, chunk_size=2, pad_to_divisible=True)
-    [[3, 4], [5, 6], [7, 7]]  # the lst element has some randomness
-    >>> chunk_list(test_examples, chunk_size=2, pad_to_divisible=False)
-    [[3, 4], [5, 6], [7]]
-    """
     n_examples = len(examples)
     remainder = n_examples % chunk_size
     if pad_to_divisible and remainder > 0:
@@ -308,27 +249,10 @@ def chunk_list(examples, chunk_size=2, pad_to_divisible=True):
     return chunked_examples
 
 
-def mk_input_group(key_grouped_examples, max_n_example_per_group=2, is_train=True,
-                   example_unique_key=None):
-    """ Re-organize examples into groups. Each input group will have a single image paired
-    with X (X=max_n_example_per_img) examples. Images with total #examples > X will be
-    split into multiple groups. In the case a group has < X examples, we will copy
-    the examples to make the group has X examples.
-    Args:
-        key_grouped_examples: dict, each key is image/video id,
-            each value is a list(example) associated with this image/video
-        max_n_example_per_group: int, pair max #examples with each image/video.
-           Note that each image can have multiple groups.
-        is_train: bool, if True, copy the examples to make sure each input
-            group has max_n_example_per_group examples.
-        example_unique_key: str, used to make sure no inputs are discarded by matching
-            the input and output ids specified by `example_unique_key`
-    """
+def mk_input_group(key_grouped_examples, max_n_example_per_group=2, is_train=True, example_unique_key=None):
     input_groups = []  # each element is (id, list(example))
     for k, examples in key_grouped_examples.items():
-        chunked_examples = chunk_list(examples,
-                                      chunk_size=max_n_example_per_group,
-                                      pad_to_divisible=is_train)
+        chunked_examples = chunk_list(examples, chunk_size=max_n_example_per_group, pad_to_divisible=is_train)
         for c in chunked_examples:
             # if len(c) == 0:
             #     continue
@@ -346,11 +270,6 @@ def mk_input_group(key_grouped_examples, max_n_example_per_group=2, is_train=Tru
 
 
 def repeat_tensor_rows(raw_tensor, row_repeats):
-    """ repeat raw_tensor[i] row_repeats[i] times.
-    Args:
-        raw_tensor: (B, *)
-        row_repeats: list(int), len(row_repeats) == len(raw_tensor)
-    """
     assert len(raw_tensor) == len(raw_tensor), "Has to be the same length"
     if sum(row_repeats) == len(row_repeats):
         return raw_tensor
@@ -365,15 +284,6 @@ def repeat_tensor_rows(raw_tensor, row_repeats):
 #### Data utils
 import io
 def load_decompress_img_from_lmdb_value(lmdb_value):
-    """
-    Args:
-        lmdb_value: image binary from
-            with open(filepath, "rb") as f:
-                lmdb_value = f.read()
-
-    Returns:
-        PIL image, (h, w, c)
-    """
     io_stream = io.BytesIO(lmdb_value)
     img = Image.open(io_stream, mode="r")
     return img
